@@ -27,6 +27,14 @@ import shutil
 from click_default_group import DefaultGroup
 from datetime import datetime
 
+# from Crypto.Random import get_random_bytes
+# from Crypto.Protocol.KDF import PBKDF2
+# from Crypto.Cipher import AES
+# from Crypto.Util.Padding import pad
+# from Crypto.Util.Padding import unpad
+from user_sync.encrypt import Encryption
+# import user_sync.encryption
+
 import six
 
 import user_sync.config
@@ -37,6 +45,7 @@ import user_sync.lockfile
 import user_sync.rules
 import user_sync.cli
 import user_sync.resource
+# import user_sync.encryption
 from user_sync.error import AssertionException
 from user_sync.version import __version__ as app_version
 
@@ -218,6 +227,28 @@ def example_config(**kwargs):
         assert res_file is not None, "Resource file '{}' not found".format(res_files[k])
         click.echo("Generating file '{}'".format(fname))
         shutil.copy(res_file, fname)
+
+
+@main.command()
+@click.option('--key-path', help='Choose a file to encrypt',
+              default='../test-config/LDAP/private2.key', type=click.Path(exists=True))
+@click.argument('data', type=click.File('rb'), default='../test-config/LDAP/private2.key')
+@click.option('--password', prompt='Create password', hide_input=True, confirmation_prompt=True)
+def encrypt(key_path, password, data):
+    encryption = Encryption(key_path, password, data)
+    encryption.encrypt_file()
+
+
+@main.command()
+@click.option('--key-path', help='Choose a file to decrypt',
+              default='../test-config/LDAP/private2.key', type=click.Path(exists=True))
+@click.argument('data', type=click.File('rb'), default='../test-config/LDAP/private2.key')
+# @click.argument('output', type=click.File('wb'), default='../test-config/LDAP/private2.key')
+@click.option('--password', prompt=True, hide_input=True)
+def decrypt(key_path, password, data):
+    encryption = Encryption(key_path, password, data)
+    encryption.decrypt_file()
+    # output.write(original_data)
 
 
 @main.command()
