@@ -34,17 +34,15 @@ class Encryption:
     def decrypt_file(self):
         rsa_opening = "-----BEGIN RSA PRIVATE KEY-----".encode()
         if rsa_opening not in self.data:
-            file_in = open(self.pk_file, 'rb')
-            iv = file_in.read(16)
-            ciphered_data = file_in.read()
-            file_in.close()
+            with open(self.pk_file, 'rb') as file_in:
+                iv = file_in.read(16)
+                ciphered_data = file_in.read()
             key = self.create_key()
             try:
                 cipher = AES.new(key, AES.MODE_CBC, iv=iv)
                 original_data = unpad(cipher.decrypt(ciphered_data), AES.block_size)
                 with open(self.pk_file, 'wb') as file:
                     file.write(original_data)
-                    file.close()
                 print("Decryption successful!", os.path.abspath(self.pk_file))
                 return original_data
             except ValueError:
