@@ -230,25 +230,19 @@ def example_config(**kwargs):
 
 
 @main.command()
-@click.option('--key-path', help='Choose a file to encrypt',
-              default='../test-config/LDAP/private2.key', type=click.Path(exists=True))
-@click.argument('data', type=click.File('rb'), default='../test-config/LDAP/private2.key')
+@click.option('--key-path', help='Choose a file to encrypt', default='private.key', type=click.Path(exists=True))
 @click.option('--password', prompt='Create password', hide_input=True, confirmation_prompt=True)
-def encrypt(key_path, password, data):
-    encryption = Encryption(key_path, password, data)
+def encrypt(key_path, password):
+    encryption = Encryption(key_path, password)
     encryption.encrypt_file()
 
 
 @main.command()
-@click.option('--key-path', help='Choose a file to decrypt',
-              default='../test-config/LDAP/private2.key', type=click.Path(exists=True))
-@click.argument('data', type=click.File('rb'), default='../test-config/LDAP/private2.key')
-# @click.argument('output', type=click.File('wb'), default='../test-config/LDAP/private2.key')
+@click.option('--key-path', help='Choose a file to decrypt', default='private.key', type=click.Path(exists=True))
 @click.option('--password', prompt=True, hide_input=True)
-def decrypt(key_path, password, data):
-    encryption = Encryption(key_path, password, data)
+def decrypt(key_path, password):
+    encryption = Encryption(key_path, password)
     encryption.decrypt_file()
-    # output.write(original_data)
 
 
 @main.command()
