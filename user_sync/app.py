@@ -229,21 +229,28 @@ def example_config(**kwargs):
         shutil.copy(res_file, fname)
 
 
-@main.command()
-@click.option('--key-path', help='Choose a file to encrypt', default='private.key', type=click.Path(exists=True))
+@main.command(help='Choose a file to encrypt')
+@click.argument('key-path', default='private.key', type=click.Path(exists=True))
 @click.option('--password', prompt='Create password', hide_input=True, confirmation_prompt=True)
 def encrypt(key_path, password):
     encryption = Encryption(key_path, password)
-    encryption.encrypt_file()
+    try:
+        encryption.encrypt_file()
+        print('Encryption was successful.', os.path.abspath(key_path))
+    except AssertionException as e:
+        print(str(e))
 
 
 @main.command()
-@click.option('--key-path', help='Choose a file to decrypt', default='private.key', type=click.Path(exists=True))
+@click.argument('key-path', default='private.key', type=click.Path(exists=True))
 @click.option('--password', prompt=True, hide_input=True)
 def decrypt(key_path, password):
     encryption = Encryption(key_path, password)
-    encryption.decrypt_file()
-
+    try:
+        encryption.decrypt_file()
+        print('Decryption was successful.', os.path.abspath(key_path))
+    except AssertionException as e:
+        print(str(e))
 
 @main.command()
 @click.help_option('-h', '--help')

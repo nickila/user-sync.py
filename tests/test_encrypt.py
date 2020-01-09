@@ -1,8 +1,8 @@
 import os
-import re
 import pytest
 import shutil
 import user_sync.encrypt
+from user_sync.error import AssertionException
 
 
 @pytest.fixture
@@ -17,13 +17,6 @@ def encrypted_key(fixture_dir, tmpdir):
     return os.path.join(tmpdir.dirname, 'encrypted.key')
 
 
-def check_pattern(key_file):
-    pattern = re.compile('\\\\x[A-aZ-z0-9]{0,3}\\\\')
-    with open(key_file, "rb") as file:
-        data = file.read()
-    return len(pattern.findall(str(data)))
-
-
 def test_create_key(private_key):
     password = 'password'
     invalid_password = 'wrong_password'
@@ -36,43 +29,39 @@ def test_create_key(private_key):
 def test_encrypt_file(private_key, encrypted_key):
     password = 'password'
     encryption = user_sync.encrypt.Encryption(private_key, password)
-    encryption.encrypt_file()
-    assert check_pattern(private_key) > 100
-    # Try using the wrong password
-    invalid_password = 'wrong_password'
-    encryption = user_sync.encrypt.Encryption(private_key, invalid_password)
-    assert not encryption.encrypt_file()
+    assert encryption.encrypt_file()
     # Try encrypting an already encrypted file
     encryption = user_sync.encrypt.Encryption(encrypted_key, password)
-    assert not encryption.encrypt_file()
+    with pytest.raises(AssertionException, match='File has already been encrypted.'):
+        encryption.encrypt_file()
 
 
 def test_decrypt_file(encrypted_key, private_key):
     password = 'password'
-    decryption = user_sync.encrypt.Encryption(encrypted_key, password)
-    decryption.decrypt_file()
-    assert check_pattern(encrypted_key) < 100
-    # Try using the wrong password
     invalid_password = 'wrong_password'
+    decryption = user_sync.encrypt.Encryption(encrypted_key, password)
+    assert decryption.decrypt_file()
+    # Try using the wrong password
     decryption = user_sync.encrypt.Encryption(encrypted_key, invalid_password)
-    assert not decryption.decrypt_file()
+    with pytest.raises(AssertionException, match='Password was incorrect or file is not encrypted.'):
+        decryption.decrypt_file()
     # Try using an already decrypted file
     decryption = user_sync.encrypt.Encryption(private_key, password)
-    assert not decryption.decrypt_file()
+    with pytest.raises(AssertionException, match='Password was incorrect or file is not encrypted.'):
+        decryption.decrypt_file()
 
 
 def test_encrypt_and_decrypt(private_key):
     password = 'password'
-    assert check_pattern(private_key) < 100
+    with open(private_key, 'rb') as file:
+        original_data = file.read()
     encryption = user_sync.encrypt.Encryption(private_key, password)
     encryption.encrypt_file()
-    assert check_pattern(private_key) > 100
+    with open(private_key, 'rb') as file:
+        encrypted_data = file.read()
     decryption = user_sync.encrypt.Encryption(private_key, password)
     decryption.decrypt_file()
-    assert check_pattern(private_key) < 100
-
-
-
-
-
-
+    with open(private_key, 'rb') as file:
+        decrypted_data = file.read()
+    assert original_data == decrypted_data
+    assert encrypted_data != original_data and encrypted_data != decrypted_data
