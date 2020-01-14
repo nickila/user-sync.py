@@ -39,16 +39,16 @@ def test_encrypt_file(private_key, encrypted_key):
 def test_decrypt_file(encrypted_key, private_key):
     password = 'password'
     invalid_password = 'wrong_password'
-    decryption = user_sync.encrypt.Encryption(encrypted_key, password)
-    assert decryption.decrypt_file()
     # Try using the wrong password
     decryption = user_sync.encrypt.Encryption(encrypted_key, invalid_password)
-    with pytest.raises(AssertionException, match='Password was incorrect or file is not encrypted.'):
+    with pytest.raises(AssertionException, match='Password was incorrect.'):
         decryption.decrypt_file()
     # Try using an already decrypted file
     decryption = user_sync.encrypt.Encryption(private_key, password)
-    with pytest.raises(AssertionException, match='Password was incorrect or file is not encrypted.'):
+    with pytest.raises(AssertionException, match='File has not been encrypted.'):
         decryption.decrypt_file()
+    decryption = user_sync.encrypt.Encryption(encrypted_key, password)
+    assert decryption.decrypt_file()
 
 
 def test_encrypt_and_decrypt(private_key):

@@ -229,7 +229,7 @@ def example_config(**kwargs):
         shutil.copy(res_file, fname)
 
 
-@main.command(help='Choose a file to encrypt')
+@main.command(help='Encrypts private.key using encrypted password.')
 @click.argument('key-path', default='private.key', type=click.Path(exists=True))
 @click.option('--password', prompt='Create password', hide_input=True, confirmation_prompt=True)
 def encrypt(key_path, password):
@@ -241,7 +241,7 @@ def encrypt(key_path, password):
         print(str(e))
 
 
-@main.command()
+@main.command(help='Decrypts private.key using encrypted password.')
 @click.argument('key-path', default='private.key', type=click.Path(exists=True))
 @click.option('--password', prompt=True, hide_input=True)
 def decrypt(key_path, password):

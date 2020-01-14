@@ -1,3 +1,73 @@
+# from Crypto.Protocol.KDF import PBKDF2
+# from Crypto.Cipher import AES
+# from Crypto.Util.Padding import pad
+# from Crypto.Util.Padding import unpad
+# import re
+# from user_sync.error import AssertionException
+#
+#
+# class Encryption:
+#     def __init__(self, pk_file, password):
+#         self.pk_file = pk_file
+#         self.key = self.create_key(password)
+#         with open(pk_file, 'rb') as data:
+#             self.data = data.read()
+#
+#     def create_key(self, password):
+#         salt = b'\xe5\x87\x8fa\xed\x0f\x01fl\x91\x05]bd\xd9C\x89\x90N\xbb\xc0\x06\xc3\x03[b8\x0eI\xbc\x12\xdb'
+#         return PBKDF2(password, salt, dkLen=32)
+#
+#     def validate_encryption(self):
+#         with open(self.pk_file, 'rb') as file_in:
+#             iv = file_in.read(16)
+#             ciphered_data = file_in.read()
+#             cipher = AES.new(self.key, AES.MODE_CBC, iv=iv)
+#             original_data = unpad(cipher.decrypt(ciphered_data), AES.block_size)
+#             return original_data
+#
+#     def encrypt_file(self):
+#         try:
+#             self.validate_encryption()
+#         except ValueError as e:
+#             if e.args[0] == 'Data must be padded to 16 byte boundary in CBC mode':
+#                 cipher = AES.new(self.key, AES.MODE_CBC)
+#                 ciphered_data = cipher.encrypt(pad(self.data, AES.block_size))
+#                 with open(self.pk_file, "wb") as file_out:
+#                     file_out.write(cipher.iv)
+#                     file_out.write(ciphered_data)
+#                 return ciphered_data
+#
+#         # with open(self.pk_file, 'rb') as file_in:
+#         #     iv = file_in.read(16)
+#         #     ciphered_data = file_in.read()
+#         # try:
+#         #     cipher = AES.new(self.key, AES.MODE_CBC, iv=iv)
+#         #     original_data = unpad(cipher.decrypt(ciphered_data), AES.block_size)
+#         #     print('File has already been encrypted.')
+#         #     return original_data
+#         # except ValueError as e:
+#         #     if e.args[0] == 'Data must be padded to 16 byte boundary in CBC mode':
+#         #         cipher = AES.new(self.key, AES.MODE_CBC)
+#         #         ciphered_data = cipher.encrypt(pad(self.data, AES.block_size))
+#         #         with open(self.pk_file, "wb") as file_out:
+#         #             file_out.write(cipher.iv)
+#         #             file_out.write(ciphered_data)
+#         #         return ciphered_data
+#
+#
+#
+#     def decrypt_file(self):
+#         try:
+#             original_data = self.validate_encryption()
+#             with open(self.pk_file, 'wb') as file:
+#                 file.write(original_data)
+#         except ValueError as e:
+#             if e.args[0] == 'Data must be padded to 16 byte boundary in CBC mode':
+#                 raise AssertionException('File has not been %%%%% encrypted.')
+#             elif e.args[0] == 'Padding is incorrect.':
+#                 raise AssertionException('Password was incorrect.')
+#             else:
+#                 raise AssertionException('Something has gone wrong.')
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
@@ -44,5 +114,11 @@ class Encryption:
             with open(self.pk_file, 'wb') as file:
                 file.write(original_data)
             return original_data
-        except ValueError:
-            raise AssertionException('Password was incorrect or file is not encrypted.')
+        except ValueError as e:
+            if e.args[0] == 'Data must be padded to 16 byte boundary in CBC mode':
+                raise AssertionException('File has not been encrypted.')
+            elif e.args[0] == 'Padding is incorrect.':
+                raise AssertionException('Password was incorrect.')
+            else:
+                print(e)
+                raise AssertionException('Something has gone wrong.')
