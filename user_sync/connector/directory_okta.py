@@ -310,7 +310,7 @@ class OktaDirectoryConnector(object):
 
     def filter_users(self, users, filter_string):
         try:
-            return list(filter(lambda user: eval(filter_string), users))
+            return list(filter(lambda user: eval(filter_string, {}, {"user": user}), users))
         except SyntaxError as e:
             raise AssertionException("Invalid syntax in predicate (%s): cannot evaluate" % filter_string)
         except Exception as e:
